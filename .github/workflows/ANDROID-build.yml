@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Cari folder ANDROID
+      - name: Cari folder AI Asisten Control
         id: loc
         run: |
           S=$(find . -path '*/ANDROID/settings.gradle' | head -n 1)
