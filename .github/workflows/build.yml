@@ -1,0 +1,42 @@
+name: AI Asisten Control
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Cari folder ANDROID
+        id: loc
+        run: |
+          S=$(find . -path '*/ANDROID/settings.gradle' | head -n 1)
+          [ -n "$S" ] || { echo "Folder ANDROID tidak ditemukan"; exit 1; }
+          echo "dir=$(dirname "$S")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Pasang Gradle 8.7
+        run: |
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.7-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d "$HOME"
+          echo "$HOME/gradle-8.7/bin" >> "$GITHUB_PATH"
+
+      - name: Terima lisensi Android SDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - name: Build APK
+        working-directory: ${{ steps.loc.outputs.dir }}
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: AI-Asisten-Control-APK
+          path: ${{ steps.loc.outputs.dir }}/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
